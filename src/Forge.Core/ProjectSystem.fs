@@ -509,10 +509,10 @@ type SourceTree (files:SourceFile list) =
         let target = normalizeFileName target
         if isDirectory target then
             if tree.ContainsKey target then true else
-            traceWarning ^ sprintf "target directory '%s' is not found in the project tree" target
+            traceWarning ^ sprintf "target directory '%s' doesn't exist in the project tree" target
             false
         elif data.ContainsKey target then true else
-        traceWarning ^ sprintf "target file '%s' is doest not exist in the project" target
+        traceWarning ^ sprintf "target file '%s' doesn't exist in the project tree" target
         false
 
     let moveFile shift target =
@@ -772,7 +772,7 @@ type ProjectSettings =
 
         if  not (Constants.PropertyGroup = xelem.Name.LocalName)
          || XElem.hasAttribute Constants.Condition xelem then
-            failwithf "XElement provided was not `PropertyGroup` without a condition was `%s` instead" xelem.Name.LocalName
+            failwithf "XElement provided was not `PropertyGroup` without a condition, was `%s` instead" xelem.Name.LocalName
         else
 
         let elem name =
