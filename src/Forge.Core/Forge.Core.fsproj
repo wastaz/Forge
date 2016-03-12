@@ -63,6 +63,7 @@
     <None Include="paket.template" />
     <Compile Include="Prelude.fs" />
     <Compile Include="XLinq.fs" />
+    <Compile Include="JsonValue.fs" />
     <Compile Include="ResizeArray.fs" />
     <Compile Include="TraceListener.fs" />
     <Compile Include="TraceHelper.fs" />
@@ -76,11 +77,10 @@
     <Compile Include="GacSearch.fs" />
     <Compile Include="Constants.fs" />
     <Compile Include="ProjectValidation.fs" />
-    <Compile Include="SolutionFile.fs" />
     <Compile Include="ProjectSystem.fs" />
+    <Compile Include="SolutionSystem.fs" />
     <Compile Include="ProjectManager.fs" />
     <Compile Include="Templates.fs" />
-    <Compile Include="Project.fs" />
     <EmbeddedResource Include="XmlSchemas\Microsoft.Build.Commontypes.xsd" />
     <EmbeddedResource Include="XmlSchemas\Microsoft.Build.Core.xsd" />
     <EmbeddedResource Include="XmlSchemas\Microsoft.Build.xsd" />

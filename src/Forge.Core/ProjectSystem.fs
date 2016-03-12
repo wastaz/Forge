@@ -20,6 +20,7 @@ open System.IO
 open System.Collections.Generic
 open System.Xml
 open System.Xml.Linq
+open Forge
 
 (*  Project System AST
     ==================
@@ -58,14 +59,6 @@ open System.Xml.Linq
     These will map to XML elements and attributes in the .fsproj file
 *)
 
-
-let (|InvariantEqual|_|) (str:string) arg =
-  if String.Compare(str, arg, StringComparison.OrdinalIgnoreCase) = 0
-  then Some () else None
-
-/// Sets the platform for a Build Configuration
-///     x86,  x64, or AnyCPU.
-/// The default is AnyCPU.
 type PlatformType =
     | X86 |  X64 | AnyCPU
 
@@ -77,6 +70,7 @@ type PlatformType =
     static member Parse text = text |> function
         | InvariantEqual Constants.X86     -> X86
         | InvariantEqual Constants.X64     -> X64
+        | InvariantEqual "Any CPU"
         | InvariantEqual Constants.AnyCPU  -> AnyCPU
         | _ ->
             failwithf "Could not parse '%s' into a `PlatformType`" text
@@ -84,8 +78,9 @@ type PlatformType =
     static member TryParse text = text |> function
         | InvariantEqual Constants.X86     -> Some X86
         | InvariantEqual Constants.X64     -> Some X64
+        | InvariantEqual "Any CPU"
         | InvariantEqual Constants.AnyCPU  -> Some AnyCPU
-        | _                 -> None
+        | _ -> None
 
 
 [<RequireQualifiedAccess>]
@@ -405,7 +400,9 @@ type SourceElement =
 module internal PathHelpers =
 
     let normalizeFileName (fileName : string) =
-        let file = fileName.Replace(@"\", "/").TrimEnd(Path.DirectorySeparatorChar).ToLower()
+        let file = if (fileName = (Path.DirectorySeparatorChar |> string)) 
+                   then fileName
+                   else fileName.Replace(@"\", "/").TrimEnd(Path.DirectorySeparatorChar).ToLower()
         match file with
         | "/" -> "/"
         | f -> f.TrimStart '/'
@@ -509,7 +506,7 @@ type SourceTree (files:SourceFile list) =
 
     /// Check if the target exists in the project file tree
     let hasTarget (target:string) =
-        let target = normalizeFileName target 
+        let target = normalizeFileName target
         if isDirectory target then
             if tree.ContainsKey target then true else
             traceWarning ^ sprintf "target directory '%s' is not found in the project tree" target
@@ -617,7 +614,7 @@ type SourceTree (files:SourceFile list) =
     member __.RenameFile (path:string) (newName:string) =
         // TODO - check path & name for validity
         // TODO - if there's a .fs & .fsi pair rename both files
-        if   not ^ hasTarget path then () 
+        if   not ^ hasTarget path then ()
         elif not ^ checkFile newName "is not a valid file name" then () else
         let path = normalizeFileName path
         let dir  = getDirectory path
@@ -640,7 +637,7 @@ type SourceTree (files:SourceFile list) =
 
     member __.RenameDir (dir:string) (newName:string) =
         let dir,newName = fixDir dir, fixDir newName
-        if   not ^ hasTarget dir then () 
+        if   not ^ hasTarget dir then ()
         elif not ^ checkFile newName "is not a valid file name" then () else
         let parent = getParentDir dir
 
@@ -684,7 +681,7 @@ type SourceTree (files:SourceFile list) =
             seq { for x in arr do
                     if isDirectory x then yield! loop (dir+x) (tree.[dir+x])
                     elif data.ContainsKey (dir+x) then
-                        yield data.[dir+x].Include               
+                        yield data.[dir+x].Include
             }
         if not ^ tree.ContainsKey dir then Seq.empty else
         let arr = tree.[dir]
@@ -695,6 +692,7 @@ type SourceTree (files:SourceFile list) =
 
     member __.Data with get() = data
     member __.Tree with get() = tree
+    member __.Files with get() = data.Keys |> Seq.toList
 
 
     override self.ToString() =
@@ -1026,7 +1024,7 @@ module FsProject =
 
 
     let addReference (refr:Reference) (proj:FsProject) =
-        if proj.References |> ResizeArray.contains refr then 
+        if proj.References |> ResizeArray.contains refr then
             traceWarning "already contrains this reference"
             proj
         else
@@ -1108,150 +1106,6 @@ module FsProject =
         File.WriteAllText(path,proj.ToXmlString())
         with
         | ex -> traceException ex
-        
-
-
-
-// A small abstraction over MSBuild project files.
-type ProjectFile (projectFileName:string, documentContent:string) =
-    let document = XMLDoc documentContent
-
-    let nsmgr =
-        let nsmgr = XmlNamespaceManager document.NameTable
-        nsmgr.AddNamespace("default", document.DocumentElement.NamespaceURI)
-        nsmgr
-
-    let compileNodesXPath = "/default:Project/default:ItemGroup/default:Compile"
-
-    let projectFilesXPath = "/default:Project/default:ItemGroup/default:Compile|" +
-                            "/default:Project/default:ItemGroup/default:Content|" +
-                            "/default:Project/default:ItemGroup/default:None"
-
-    let referenceFilesXPath = "/default:Project/default:ItemGroup/default:Reference"
-
-    let nodeListToList (nodeList:XmlNodeList) = [for node in nodeList -> node]
-    let getNodes xpath (document:XmlDocument) = document.SelectNodes(xpath, nsmgr) |> nodeListToList
-    let getFileAttribute (node:XmlNode) = node.Attributes.["Include"].InnerText
-
-    let newElement (document:XmlDocument) name = document.CreateElement(name, document.DocumentElement.NamespaceURI)
-
-    let addFile fileName nodeType xPath =
-        let document = XMLDoc documentContent // we create a copy and work immutable
-
-        let newNode = newElement document nodeType
-        newNode.SetAttribute("Include", fileName)
-
-        //get the first ItemGroup node
-        let itemGroup = getNodes xPath document |> List.map(fun x -> x.ParentNode) |> List.distinct |> List.tryHead
-
-        match itemGroup with
-        | Some n -> n.AppendChild(newNode) |> ignore
-        | None ->
-            let groupNode = newElement document "ItemGroup"
-            groupNode.AppendChild newNode |> ignore
-            let project = getNodes "/default:Project" document |> Seq.head
-            project.AppendChild groupNode |> ignore
-
-        new ProjectFile(projectFileName,document.OuterXml)
-
-    let getNode document xPath fileName =
-        getNodes xPath document
-        |> List.filter (fun node -> getFileAttribute node = fileName)
-        |> Seq.tryLast
-
-    let removeFile fileName xPath =
-        let document = XMLDoc documentContent // we create a copy and work immutable
-        let node = getNode document xPath fileName
-
-        match node with
-        | Some n -> n.ParentNode.RemoveChild n |> ignore
-        | None -> ()
-
-        new ProjectFile(projectFileName,document.OuterXml)
-
-    let orderFiles fileName1 fileName2 xPath =
-        let document = XMLDoc documentContent // we create a copy and work immutable
-        match getNode document xPath fileName1 with
-        | Some n1 ->
-            let updated = removeFile fileName1 xPath
-            let updatedXml = XMLDoc updated.Content
-            match getNode updatedXml xPath fileName2 with
-            | Some n2 ->
-                let node = newElement updatedXml n1.Name
-                node.SetAttribute("Include", fileName1)
-                n2.ParentNode.InsertBefore(node, n2) |> ignore
-
-                new ProjectFile(projectFileName, updatedXml.OuterXml)
-
-            | None -> new ProjectFile(projectFileName,document.OuterXml)
-        | _ -> new ProjectFile(projectFileName,document.OuterXml)
-
-    /// Read a Project from a FileName
-    static member FromFile(projectFileName) = new ProjectFile(projectFileName,String.readFileAsString projectFileName)
-
-    /// Saves the project file
-    member x.Save(?fileName) =
-        use writer = new System.IO.StreamWriter(defaultArg fileName projectFileName,
-                                                false,
-                                                new System.Text.UTF8Encoding(false))
-        document.Save(writer)
-
-    member x.Content =
-        let utf8 = System.Text.UTF8Encoding false
-        let settings = XmlWriterSettings()
-        settings.Encoding <- utf8
-        settings.Indent <- true
-        use ms = new System.IO.MemoryStream()
-        use writer = System.Xml.XmlWriter.Create(ms, settings)
-        document.Save(writer)
-        ms.GetBuffer() |> utf8.GetString
-
-
-
-    /// Add a file to the ItemGroup node with node type
-    member x.AddFile fileName nodeType =
-        addFile fileName nodeType projectFilesXPath
-
-    /// Removes a file from the ItemGroup node with optional node type
-    member x.RemoveFile fileName =
-        removeFile fileName projectFilesXPath
-
-    member x.AddReference reference =
-        addFile reference "Reference" referenceFilesXPath
-
-    member x.RemoveReference reference =
-        removeFile reference referenceFilesXPath
-
-    /// All files which are in "Compile" sections
-    member x.Files = getNodes compileNodesXPath document |> List.map getFileAttribute
-
-
-    member x.ProjectFiles = getNodes projectFilesXPath document |> List.map getFileAttribute
-
-    member x.References = getNodes referenceFilesXPath document |> List.map getFileAttribute
-
-    /// Finds duplicate files which are in "Compile" sections
-    member this.FindDuplicateFiles() =
-        [let dict = Dictionary()
-         for file in this.Files do
-            match dict.TryGetValue file with
-            | false,_    -> dict.[file] <- false            // first observance
-            | true,false -> dict.[file] <- true; yield file // second observance
-            | true,true  -> ()                              // already seen at least twice
-        ]
-
-    member x.RemoveDuplicates() =
-        x.FindDuplicateFiles()
-        |> List.fold (fun (project:ProjectFile) duplicate -> project.RemoveFile duplicate) x
-
-    /// Places the first file above the second file
-    member x.OrderFiles file1 file2 =
-        orderFiles file1 file2 projectFilesXPath
-
-
-    /// The project file name
-    member x.ProjectFileName = projectFileName
-
 
 #if INTERACTIVE
 ;;

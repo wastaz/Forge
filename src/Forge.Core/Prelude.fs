@@ -114,6 +114,9 @@ let environVars target =
 //=====================================================
 [<RequireQualifiedAccess>]
 module String =
+
+    let equalsIgnoreCase (str1:string) (str2:string) =
+        String.Compare(str1,str2,StringComparison.OrdinalIgnoreCase) = 0
     /// Converts a sequence of strings to a string with delimiters
     let inline separated delimiter (items : string seq) = String.Join(delimiter, Array.ofSeq items)
 
@@ -162,7 +165,6 @@ module String =
 // Process Helpers
 //=====================================================
 
-
 let prompt text =
     printfn text
     Console.Write "> "
@@ -174,6 +176,13 @@ let promptSelect text list =
     printfn ""
     Console.Write "> "
     Console.ReadLine ()
+
+let promptSelect2 text list =
+     printfn text
+     list |> Array.iter (fun (n, v) -> printfn " - %s (%s)" n v)
+     printfn ""
+     Console.Write("> ")
+     Console.ReadLine()
 
 /// Loads the given text into a XmlDocument
 let XMLDoc text =
@@ -194,6 +203,10 @@ let packagesDirectory = directory </> "packages"
 let paketLocation     = exeLocation </> "Tools" </> "Paket"
 let fakeLocation      = exeLocation </> "Tools" </> "FAKE"
 let fakeToolLocation  = fakeLocation </> "tools"
+
+let filesLocation = templatesLocation </> ".files"
+let templateFile = templatesLocation </> "templates.json"
+
 
 
 let inline mapOpt (opt:'a option) mapfn (x:'b) =
@@ -301,4 +314,22 @@ let maybe = MaybeBuilder()
 let (|InvariantEqual|_|) (str:string) arg =
   if String.Compare(str, arg, StringComparison.OrdinalIgnoreCase) = 0
   then Some () else None
+  
+  
+// Seq extension
+//====================================
 
+module Seq = 
+    let duplicates xs =
+        (Map.empty, xs)
+        ||> Seq.scan (fun xs x ->
+            match Map.tryFind x xs with
+            | None -> Map.add x false xs
+            | Some false -> Map.add x true xs
+            | Some true -> xs)
+        |> Seq.zip xs
+        |> Seq.choose (fun (x, xs) ->
+            match Map.tryFind x xs with
+            | Some false -> Some x
+            | None | Some true -> None)
+            
