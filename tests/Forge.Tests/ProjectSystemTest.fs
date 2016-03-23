@@ -12,18 +12,18 @@ open FsUnit
 module ``ProjectSystem Tests`` =
 
     [<Test>]
-    let ``ProjectSystem parse - AST gets all project files`` () =
+    let ``parse - AST gets all project files`` () =
         let projectFile = FsProject.parse astInput
         System.Diagnostics.Debug.WriteLine projectFile
         projectFile.SourceFiles.AllFiles() |> Seq.length |> should be (equal 3)
 
     [<Test>]
-    let ``ProjectSystem parse - AST gets all references`` () =
+    let ``parse - AST gets all references`` () =
         let projectFile = FsProject.parse astInput
         projectFile.References |> Seq.length|> should be (equal 5)
 
     [<Test>]
-    let ``ProjectSystem parse - AST gets correct settings`` () =
+    let ``parse - AST gets correct settings`` () =
         let projectFile = FsProject.parse astInput
         let s = projectFile.Settings
         s.Configuration.Data |> should be (equal ^ Some "Debug")
@@ -35,7 +35,7 @@ module ``ProjectSystem Tests`` =
         s.AssemblyName.Data |> should be (equal ^ Some "Test")
 
     [<Test>]
-    let ``ProjectSystem - add new file``() =
+    let ``parse - add new file``() =
         let pf = FsProject.parse astInput
         let f = {SourceFile.Include = "Test.fsi"; Condition = None; OnBuild = BuildAction.Compile; Link = None; Copy = None}
         let pf' = FsProject.addSourceFile "/" f pf
@@ -44,7 +44,7 @@ module ``ProjectSystem Tests`` =
         pf'.SourceFiles.AllFiles() |> Seq.length |> should be (equal 4)
 
     [<Test>]
-    let ``ProjectSystem - add duplicate file``() =
+    let ``parse - add duplicate file``() =
         let pf = FsProject.parse astInput
         let f = {SourceFile.Include = "FixProject.fs"; Condition = None; OnBuild = BuildAction.Compile; Link = None; Copy = None}
         let pf' = FsProject.addSourceFile "/" f pf
@@ -53,21 +53,21 @@ module ``ProjectSystem Tests`` =
         pf'.SourceFiles.AllFiles() |> Seq.length |> should be (equal 3)
 
     [<Test>]
-    let ``ProjectSystem - remove file``() =
+    let ``parse - remove file``() =
         let pf = FsProject.parse astInput
         let f = "FixProject.fs"
         let pf' = FsProject.removeSourceFile f pf
         pf'.SourceFiles.AllFiles() |> Seq.length |> should be (equal 2)
 
     [<Test>]
-    let ``ProjectSystem - remove not existing file``() =
+    let ``parse - remove not existing file``() =
         let pf = FsProject.parse astInput
         let f = "FixProject2.fs"
         let pf' = FsProject.removeSourceFile f pf
         pf'.SourceFiles.AllFiles() |> Seq.length |> should be (equal 3)
 
     [<Test>]
-    let ``ProjectSystem - order file``() =
+    let ``parse  - order file``() =
         let pf = FsProject.parse astInput
         let pf' = pf |> FsProject.moveUp "a_file.fs" |> FsProject.moveUp "a_file.fs" 
         let files = pf'.SourceFiles.AllFiles()
@@ -75,105 +75,113 @@ module ``ProjectSystem Tests`` =
         files |> Seq.length |> should be (equal 3)
 
     [<Test>]
-    let ``ProjectSystem - add reference``() =
+    let ``parse - add reference``() =
         let pf = FsProject.parse astInput
         let r = {Reference.Empty with Include = "System.Xml"}
         let pf' = FsProject.addReference r pf
         pf'.References |> Seq.length |> should be (equal 6)
 
     [<Test>]
-    let ``ProjectSystem - add existing reference``() =
+    let ``parse - add existing reference``() =
         let pf = FsProject.parse astInput
         let r = {Reference.Empty with Include = "System"}
         let pf' = FsProject.addReference r pf
         pf'.References |> Seq.length |> should be (equal 5)
 
     [<Test>]
-    let ``ProjectSystem - remove reference``() =
+    let ``parse - remove reference``() =
         let pf = FsProject.parse astInput
         let r = {Reference.Empty with Include = "System"}
         let pf' = FsProject.removeReference r pf
         pf'.References |> Seq.length |> should be (equal 4)
 
     [<Test>]
-    let ``ProjectSystem - remove not existing reference``() =
+    let ``parse - remove not existing reference``() =
         let pf = FsProject.parse astInput
         let r = {Reference.Empty with Include = "System.Xml"}
         let pf' = FsProject.removeReference r pf
         pf'.References |> Seq.length |> should be (equal 5)
 
-    // TODO: complete test code
     [<Test>]
-    let ``ProjectSystem - move up``() =
-        true |> should equal true
-
+    let ``parse - move up``() =
+        let pf = FsProject.parse astInput
+        let pf' = FsProject.moveUp "a_file.fs" pf
+        let files = pf'.SourceFiles.AllFiles()
+        TestContext.WriteLine (sprintf "%A" files)
+        let files' = 
+            pf'.SourceFiles.Files
+            |> Seq.toArray
+        files'.[1]
+        |> should equal "a_file.fs"
+        
     [<Test>]
-    let ``ProjectSystem - move down``() =
-        true |> should equal true
-
-    [<Test>]
-    let ``ProjectSystem - add above (?)``() =
-        true |> should equal true
-
-    [<Test>]
-    let ``ProjectSystem - add below (?)``() =
-        true |> should equal true
-
-    [<Test>]
-    let ``ProjectSystem - add dir``() =
-        true |> should equal true
+    let ``parse - move up nonexistent file``() =
+        let pf = FsProject.parse astInput
+        let pf' = FsProject.moveUp "dont_exist.fs" pf
+        pf'.SourceFiles.AllFiles() |> Seq.contains |> should equal false
 
     [<Test>]
-    let ``ProjectSystem - remove dir``() =
-        true |> should equal true
+    let ``parse - move down``() =
+        let pf = FsProject.parse astInput
+        let pf' = FsProject.moveDown "App.config" pf
+        let files = pf'.SourceFiles.AllFiles()
+        TestContext.WriteLine (sprintf "%A" files)
+        pf'.SourceFiles.Files.Tail
+        |> should equal "App.config"
 
     [<Test>]
-    let ``ProjectSystem - rename file``() =
-        true |> should equal true
-
-    [<Test>]
-    let ``ProjectSystem - rename dir``() =
-        true |> should equal true
-
-
-module ``PathHelper Tests`` =
+    let ``parse - move down nonexistent files ``() =
+        let pf = FsProject.parse astInput
+        let pf' = FsProject.moveDown "dont_exist.fs" pf
+        pf'.SourceFiles.AllFiles() |> Seq.contains "dont_exist.fs" |> should equal false
 
     // TODO: complete test code
     [<Test>]
-    let ``PathHelper - normalize file name``() =
+    let ``parse - add above (?)``() =
         true |> should equal true
 
-
-    let ``PathHelper - get root``() =
+    // TODO: complete test code
+    [<Test>]
+    let ``parse - add below (?)``() =
         true |> should equal true
 
+    [<Test>]
+    let ``parse - remove dir``() =
+        let pf = FsProject.parse projectWithDirs
+        let pf' = FsProject.removeDirectory "OneDirectory" pf
+        let files = pf'.SourceFiles.AllFiles()
+        TestContext.WriteLine (sprintf "%A" files)
+        pf'.SourceFiles.AllFiles() |> Seq.length |> should be (lessThan 4)
 
-    let ``PathHelper - path is directory``() =
-        true |> should equal true
+    [<Test>]
+    let ``parse - rename file``() =
+        let pf = FsProject.parse projectWithDirs
+        let pf' = FsProject.renameFile "a_file.fs" "a_renamed_file.fs" pf
+        let files = pf'.SourceFiles.AllFiles()
+        TestContext.WriteLine (sprintf "%A" files)
+        pf'.SourceFiles.AllFiles() |> Seq.contains "a_renamed_file.fs" |> should equal true
 
+    [<Test>]
+    let ``parse - rename dir``() =
+        let pf = FsProject.parse projectWithDirs
+        let pf' = FsProject.renameDir "AnotherDirectory" "RenamedDirectory" pf
+        let files = pf'.SourceFiles.AllFiles()
+        TestContext.WriteLine (sprintf "%A" files)
+        pf'.SourceFiles.AllFiles()
+        |> Seq.map (fun s -> s.Contains("RenameDirectory"))
+        |> Seq.contains true
+        |> should equal true
 
-    let ``PathHelper - get parent dir from path``() =
-        true |> should equal true
+    [<Test>]
+    let ``parse - list references``() =
+        let pf = FsProject.parse astInput
+        let refs = FsProject.listReferences pf
+        refs.Length |> should equal 5
 
+    [<Test>]
+    let ``parse - list files``() =
+        let pf = FsProject.parse astInput
+        let files = FsProject.listSourceFiles pf
+        files.Length |> should equal 3
 
-    let ``PathHelper - remove parent dir``() =
-        true |> should equal true
-
-
-    let ``PathHelper - remove root``() =
-        true |> should equal true
-
-
-    let ``PathHelper - fixDir: add trailing slash if missing``() =
-        true |> should equal true
-
-
-    let ``PathHelper - dirOrder (?)``() =
-        true |> should equal true
-
-    let ``PathHelper - treeOrder (?)``() =
-        true |> should equal true
-
-
-    let ``PathHelper - checkFile (?)``() =
-        true |> should equal true
+// PathHelper is internal - no direct testing available

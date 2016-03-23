@@ -14,24 +14,18 @@
 * [x] Parse - add existing reference
 * [x] Parse - remove reference
 * [x] Parse - remove non-existing reference
-* [ ] Parse - move up
-* [ ] Parse - move down
-* [ ] Parse - add above (?)
-* [ ] Parse - add below (?)
-* [ ] Parse - add dir
-* [ ] Parse - remove dir
-* [ ] Parse - rename file
-* [ ] Parse - rename directory
-* [ ] Path Helper - normalize file name
-* [ ] Path Helper - get root
-* [ ] Path Helper - path is directory
-* [ ] Path Helper - get parent dir from path
-* [ ] Path Helper - remove parent dir
-* [ ] Path Helper - remove root
-* [ ] Path Helper - fixDir: add trailing slash if missing
-* [ ] Path Helper - dirOrder: (?)
-* [ ] Path Helper - treeOrder: (?)
-* [ ] Path Helper - checkFile: (?)
+* [x] Parse - move up
+* [x] Parse - move up nonexistent file
+* [x] Parse - move down
+* [x] Parse - move down nonexistent file
+* [ ] Parse - add above
+* [ ] Parse - add below
+* [x] Parse - remove dir
+* [x] Parse - rename file
+* [x] Parse - rename directory
+* [x] Parse - isDirectory
+* [x] Parse - list references
+* [x] Parse - list files
 
 ## Solution System ##
 
