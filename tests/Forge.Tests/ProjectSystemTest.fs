@@ -105,20 +105,18 @@ module ``ProjectSystem Tests`` =
     [<Test>]
     let ``parse - move up``() =
         let pf = FsProject.parse astInput
-        let pf' = FsProject.moveUp "a_file.fs" pf
+        let pf' = FsProject.moveUp "App.config" pf
         let files = pf'.SourceFiles.AllFiles()
         TestContext.WriteLine (sprintf "%A" files)
-        let files' = 
-            pf'.SourceFiles.Files
-            |> Seq.toArray
-        files'.[1]
-        |> should equal "a_file.fs"
+        pf'.SourceFiles.AllFiles()
+        |> Seq.head
+        |> should equal "App.config"
         
     [<Test>]
     let ``parse - move up nonexistent file``() =
         let pf = FsProject.parse astInput
         let pf' = FsProject.moveUp "dont_exist.fs" pf
-        pf'.SourceFiles.AllFiles() |> Seq.contains |> should equal false
+        pf'.SourceFiles.AllFiles() |> Seq.contains |> should be (equal false)
 
     [<Test>]
     let ``parse - move down``() =
@@ -126,7 +124,9 @@ module ``ProjectSystem Tests`` =
         let pf' = FsProject.moveDown "App.config" pf
         let files = pf'.SourceFiles.AllFiles()
         TestContext.WriteLine (sprintf "%A" files)
-        pf'.SourceFiles.Files.Tail
+        pf'.SourceFiles.Files
+        |> List.rev
+        |> List.tail
         |> should equal "App.config"
 
     [<Test>]
@@ -159,7 +159,7 @@ module ``ProjectSystem Tests`` =
         let pf' = FsProject.renameFile "a_file.fs" "a_renamed_file.fs" pf
         let files = pf'.SourceFiles.AllFiles()
         TestContext.WriteLine (sprintf "%A" files)
-        pf'.SourceFiles.AllFiles() |> Seq.contains "a_renamed_file.fs" |> should equal true
+        pf'.SourceFiles.AllFiles() |> Seq.contains "a_renamed_file.fs" |> should be (equal true)
 
     [<Test>]
     let ``parse - rename dir``() =
@@ -168,20 +168,20 @@ module ``ProjectSystem Tests`` =
         let files = pf'.SourceFiles.AllFiles()
         TestContext.WriteLine (sprintf "%A" files)
         pf'.SourceFiles.AllFiles()
-        |> Seq.map (fun s -> s.Contains("RenameDirectory"))
+        |> Seq.map (fun s -> s.Contains("renamedirectory"))
         |> Seq.contains true
-        |> should equal true
+        |> should be (equal true)
 
     [<Test>]
     let ``parse - list references``() =
         let pf = FsProject.parse astInput
         let refs = FsProject.listReferences pf
-        refs.Length |> should equal 5
+        refs.Length |> should be (equal 5)
 
     [<Test>]
     let ``parse - list files``() =
         let pf = FsProject.parse astInput
         let files = FsProject.listSourceFiles pf
-        files.Length |> should equal 3
+        files.Length |> should be (equal 3)
 
 // PathHelper is internal - no direct testing available
