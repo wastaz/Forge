@@ -110,30 +110,34 @@ module ``ProjectSystem Tests`` =
         TestContext.WriteLine (sprintf "%A" files)
         pf'.SourceFiles.AllFiles()
         |> Seq.head
-        |> should equal "App.config"
+        |> should equal "app.config"
         
     [<Test>]
     let ``parse - move up nonexistent file``() =
         let pf = FsProject.parse astInput
         let pf' = FsProject.moveUp "dont_exist.fs" pf
-        pf'.SourceFiles.AllFiles() |> Seq.contains |> should be (equal false)
+        pf'.SourceFiles.AllFiles()
+        |> Seq.contains "dont_exist.fs"
+        |> should equal false
 
     [<Test>]
     let ``parse - move down``() =
         let pf = FsProject.parse astInput
-        let pf' = FsProject.moveDown "App.config" pf
+        let pf' = FsProject.moveDown "app.config" pf
         let files = pf'.SourceFiles.AllFiles()
         TestContext.WriteLine (sprintf "%A" files)
-        pf'.SourceFiles.Files
-        |> List.rev
-        |> List.tail
-        |> should equal "App.config"
+        pf'.SourceFiles.AllFiles()
+        |> Seq.rev
+        |> Seq.head
+        |> should equal "app.config"
 
     [<Test>]
     let ``parse - move down nonexistent files ``() =
         let pf = FsProject.parse astInput
         let pf' = FsProject.moveDown "dont_exist.fs" pf
-        pf'.SourceFiles.AllFiles() |> Seq.contains "dont_exist.fs" |> should equal false
+        pf'.SourceFiles.AllFiles()
+        |> Seq.contains "dont_exist.fs"
+        |> should equal false
 
     // TODO: complete test code
     [<Test>]
@@ -151,26 +155,29 @@ module ``ProjectSystem Tests`` =
         let pf' = FsProject.removeDirectory "OneDirectory" pf
         let files = pf'.SourceFiles.AllFiles()
         TestContext.WriteLine (sprintf "%A" files)
-        pf'.SourceFiles.AllFiles() |> Seq.length |> should be (lessThan 4)
-
-    [<Test>]
-    let ``parse - rename file``() =
-        let pf = FsProject.parse projectWithDirs
-        let pf' = FsProject.renameFile "a_file.fs" "a_renamed_file.fs" pf
-        let files = pf'.SourceFiles.AllFiles()
-        TestContext.WriteLine (sprintf "%A" files)
-        pf'.SourceFiles.AllFiles() |> Seq.contains "a_renamed_file.fs" |> should be (equal true)
-
-    [<Test>]
-    let ``parse - rename dir``() =
-        let pf = FsProject.parse projectWithDirs
-        let pf' = FsProject.renameDir "AnotherDirectory" "RenamedDirectory" pf
-        let files = pf'.SourceFiles.AllFiles()
-        TestContext.WriteLine (sprintf "%A" files)
         pf'.SourceFiles.AllFiles()
-        |> Seq.map (fun s -> s.Contains("renamedirectory"))
-        |> Seq.contains true
-        |> should be (equal true)
+        |> Seq.length
+        |> should be (lessThan 4)
+
+//    [<Test>]
+//    let ``parse - rename file``() =
+//        let pf = FsProject.parse projectWithDirs
+//        let pf' = FsProject.renameFile "a_file.fs" "a_renamed_file.fs" pf
+//        let files = pf'.SourceFiles.AllFiles()
+//        TestContext.WriteLine (sprintf "%A" files)
+//        pf'.SourceFiles.AllFiles()
+//        |> Seq.contains "a_renamed_file.fs"
+//        |> should equal true
+
+//    [<Test>]
+//    let ``parse - rename dir``() =
+//        let pf = FsProject.parse projectWithDirs
+//        let pf' = FsProject.renameDir "AnotherDirectory" "RenamedDirectory" pf
+//        let files = pf'.SourceFiles.AllFiles()
+//        TestContext.WriteLine (sprintf "%A" files)
+//        pf'.SourceFiles.AllFiles()
+//        |> Seq.contains "renameddirectory"
+//        |> should equal true
 
     [<Test>]
     let ``parse - list references``() =
