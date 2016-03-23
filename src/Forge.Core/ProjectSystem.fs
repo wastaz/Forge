@@ -210,6 +210,9 @@ type WarningLevel (x:int) =
     member __.Value =
         if x < 0 then 0 elif x > 5 then 5 else x
 
+    override self.ToString() = 
+        self.Value.ToString()
+
 
 let inline toXElem x = (^a:(member ToXElem:unit->'b) x)
 
@@ -512,7 +515,7 @@ type SourceTree (files:SourceFile list) =
             traceWarning ^ sprintf "target directory '%s' is not found in the project tree" target
             false
         elif data.ContainsKey target then true else
-        traceWarning ^ sprintf "target file '%s' is doest not exist in the project" target
+        traceWarning ^ sprintf "target file '%s' does not exist in the project" target
         false
 
     let moveFile shift target =
@@ -1025,7 +1028,7 @@ module FsProject =
 
     let addReference (refr:Reference) (proj:FsProject) =
         if proj.References |> ResizeArray.contains refr then
-            traceWarning "already contrains this reference"
+            traceWarning "already contains this reference"
             proj
         else
         { proj with References = ResizeArray.add refr proj.References }
