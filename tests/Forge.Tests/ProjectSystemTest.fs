@@ -10,18 +10,18 @@ open FsUnit
 
 
 [<Test>]
-let ``ProjectSystem - parse - AST gets all project files`` () =
+let ``ProjectSystem - AST gets all project files`` () =
     let projectFile = FsProject.parse astInput
     System.Diagnostics.Debug.WriteLine projectFile
     projectFile.SourceFiles.AllFiles() |> Seq.length |> should be (equal 3)
 
 [<Test>]
-let ``ProjectSystem - parse - AST gets all references`` () =
+let ``ProjectSystem - AST gets all references`` () =
     let projectFile = FsProject.parse astInput
     projectFile.References |> Seq.length|> should be (equal 5)
 
 [<Test>]
-let ``ProjectSystem - parse - AST gets correct settings`` () =
+let ``ProjectSystem - AST gets correct settings`` () =
     let projectFile = FsProject.parse astInput
     let s = projectFile.Settings
     s.Configuration.Data |> should be (equal ^ Some "Debug")
@@ -33,7 +33,7 @@ let ``ProjectSystem - parse - AST gets correct settings`` () =
     s.AssemblyName.Data |> should be (equal ^ Some "Test")
 
 [<Test>]
-let ``ProjectSystem - parse - add new file``() =
+let ``ProjectSystem - add new file``() =
     let pf = FsProject.parse astInput
     let f = {SourceFile.Include = "Test.fsi"; Condition = None; OnBuild = BuildAction.Compile; Link = None; Copy = None}
     let pf' = FsProject.addSourceFile "/" f pf
@@ -42,7 +42,7 @@ let ``ProjectSystem - parse - add new file``() =
     pf'.SourceFiles.AllFiles() |> Seq.length |> should be (equal 4)
 
 [<Test>]
-let ``ProjectSystem - parse - add duplicate file``() =
+let ``ProjectSystem - add duplicate file``() =
     let pf = FsProject.parse astInput
     let f = {SourceFile.Include = "FixProject.fs"; Condition = None; OnBuild = BuildAction.Compile; Link = None; Copy = None}
     let pf' = FsProject.addSourceFile "/" f pf
@@ -51,21 +51,21 @@ let ``ProjectSystem - parse - add duplicate file``() =
     pf'.SourceFiles.AllFiles() |> Seq.length |> should be (equal 3)
 
 [<Test>]
-let ``ProjectSystem - parse - remove file``() =
+let ``ProjectSystem - remove file``() =
     let pf = FsProject.parse astInput
     let f = "FixProject.fs"
     let pf' = FsProject.removeSourceFile f pf
     pf'.SourceFiles.AllFiles() |> Seq.length |> should be (equal 2)
 
 [<Test>]
-let ``ProjectSystem - parse - remove not existing file``() =
+let ``ProjectSystem - remove not existing file``() =
     let pf = FsProject.parse astInput
     let f = "FixProject2.fs"
     let pf' = FsProject.removeSourceFile f pf
     pf'.SourceFiles.AllFiles() |> Seq.length |> should be (equal 3)
 
 [<Test>]
-let ``ProjectSystem - parse  - order file``() =
+let ``ProjectSystem - order file``() =
     let pf = FsProject.parse astInput
     let pf' = pf |> FsProject.moveUp "a_file.fs" |> FsProject.moveUp "a_file.fs" 
     let files = pf'.SourceFiles.AllFiles()
@@ -73,35 +73,35 @@ let ``ProjectSystem - parse  - order file``() =
     files |> Seq.length |> should be (equal 3)
 
 [<Test>]
-let ``ProjectSystem - parse - add reference``() =
+let ``ProjectSystem - add reference``() =
     let pf = FsProject.parse astInput
     let r = {Reference.Empty with Include = "System.Xml"}
     let pf' = FsProject.addReference r pf
     pf'.References |> Seq.length |> should be (equal 6)
 
 [<Test>]
-let ``ProjectSystem - parse - add existing reference``() =
+let ``ProjectSystem - add existing reference``() =
     let pf = FsProject.parse astInput
     let r = {Reference.Empty with Include = "System"}
     let pf' = FsProject.addReference r pf
     pf'.References |> Seq.length |> should be (equal 5)
 
 [<Test>]
-let ``ProjectSystem - parse - remove reference``() =
+let ``ProjectSystem - remove reference``() =
     let pf = FsProject.parse astInput
     let r = {Reference.Empty with Include = "System"}
     let pf' = FsProject.removeReference r pf
     pf'.References |> Seq.length |> should be (equal 4)
 
 [<Test>]
-let ``ProjectSystem - parse - remove not existing reference``() =
+let ``ProjectSystem - remove not existing reference``() =
     let pf = FsProject.parse astInput
     let r = {Reference.Empty with Include = "System.Xml"}
     let pf' = FsProject.removeReference r pf
     pf'.References |> Seq.length |> should be (equal 5)
 
 [<Test>]
-let ``ProjectSystem - parse - move up``() =
+let ``ProjectSystem - move up``() =
     let pf = FsProject.parse astInput
     let pf' = FsProject.moveUp "App.config" pf
     let files = pf'.SourceFiles.AllFiles()
@@ -111,7 +111,7 @@ let ``ProjectSystem - parse - move up``() =
     |> should equal "app.config"
     
 [<Test>]
-let ``ProjectSystem - parse - move up nonexistent file``() =
+let ``ProjectSystem - move up nonexistent file``() =
     let pf = FsProject.parse astInput
     let pf' = FsProject.moveUp "dont_exist.fs" pf
     pf'.SourceFiles.AllFiles()
@@ -119,7 +119,7 @@ let ``ProjectSystem - parse - move up nonexistent file``() =
     |> should equal false
 
 [<Test>]
-let ``ProjectSystem - parse - move down``() =
+let ``ProjectSystem - move down``() =
     let pf = FsProject.parse astInput
     let pf' = FsProject.moveDown "app.config" pf
     let files = pf'.SourceFiles.AllFiles()
@@ -130,7 +130,7 @@ let ``ProjectSystem - parse - move down``() =
     |> should equal "app.config"
 
 [<Test>]
-let ``ProjectSystem - parse - move down nonexistent files ``() =
+let ``ProjectSystem - move down nonexistent files ``() =
     let pf = FsProject.parse astInput
     let pf' = FsProject.moveDown "dont_exist.fs" pf
     pf'.SourceFiles.AllFiles()
@@ -139,16 +139,16 @@ let ``ProjectSystem - parse - move down nonexistent files ``() =
 
 // TODO: complete test code
 [<Test>]
-let ``ProjectSystem - parse - add above (?)``() =
+let ``ProjectSystem - add above (?)``() =
     true |> should equal true
 
 // TODO: complete test code
 [<Test>]
-let ``ProjectSystem - parse - add below (?)``() =
+let ``ProjectSystem - add below (?)``() =
     true |> should equal true
 
 [<Test>]
-let ``ProjectSystem - parse - remove dir``() =
+let ``ProjectSystem - remove dir``() =
     let pf = FsProject.parse projectWithDirs
     let pf' = FsProject.removeDirectory "OneDirectory" pf
     let files = pf'.SourceFiles.AllFiles()
@@ -158,7 +158,7 @@ let ``ProjectSystem - parse - remove dir``() =
     |> should be (lessThan 4)
 
 //    [<Test>]
-//    let ``parse - rename file``() =
+//    let ``ProjectSystem - rename file``() =
 //        let pf = FsProject.parse projectWithDirs
 //        let pf' = FsProject.renameFile "a_file.fs" "a_renamed_file.fs" pf
 //        let files = pf'.SourceFiles.AllFiles()
@@ -168,7 +168,7 @@ let ``ProjectSystem - parse - remove dir``() =
 //        |> should equal true
 
 //    [<Test>]
-//    let ``parse - rename dir``() =
+//    let ``ProjectSystem - rename dir``() =
 //        let pf = FsProject.parse projectWithDirs
 //        let pf' = FsProject.renameDir "AnotherDirectory" "RenamedDirectory" pf
 //        let files = pf'.SourceFiles.AllFiles()
@@ -178,13 +178,13 @@ let ``ProjectSystem - parse - remove dir``() =
 //        |> should equal true
 
 [<Test>]
-let ``ProjectSystem - parse - list references``() =
+let ``ProjectSystem - list references``() =
     let pf = FsProject.parse astInput
     let refs = FsProject.listReferences pf
     refs.Length |> should be (equal 5)
 
 [<Test>]
-let ``ProjectSystem - parse - list files``() =
+let ``ProjectSystem - list files``() =
     let pf = FsProject.parse astInput
     let files = FsProject.listSourceFiles pf
     files.Length |> should be (equal 3)
