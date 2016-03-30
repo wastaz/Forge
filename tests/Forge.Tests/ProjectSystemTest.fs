@@ -1,7 +1,6 @@
 [<NUnit.Framework.TestFixture>]
 [<NUnit.Framework.Category "ProjectSystem">]
 module Forge.Tests.ProjectSystem
-open System.Diagnostics
 open Forge
 open Forge.Tests.Common
 open Forge.ProjectSystem
@@ -72,12 +71,67 @@ let ``ProjectSystem - remove not existing file``() =
 
 
 [<Test>]
-let ``ProjectSystem - order file``() =
+let ``ProjectSystem - move up a file``() =
     let pf = FsProject.parse astInput
     let pf' = pf |> FsProject.moveUp "a_file.fs" |> FsProject.moveUp "a_file.fs" 
     let files = pf'.SourceFiles.AllFiles()
     files |> Seq.head |> should be (equal "a_file.fs")
     files |> Seq.length |> should be (equal 3)
+
+
+[<Test>]
+let ``ProjectSystem - move down file``() =
+    let pf = FsProject.parse astInput
+    let pf' = pf |> FsProject.moveDown "FixProject.fs" |> FsProject.moveDown "FixProject.fs" 
+    let files = pf'.SourceFiles.AllFiles()
+    files |> Seq.rev |> Seq.head |> should be (equal "fixproject.fs")
+    files |> Seq.length |> should be (equal 3)
+
+
+[<Test>]
+let ``ProjectSystem - move down last file``() =
+    let pf = FsProject.parse astInput
+    let pf' = pf |> FsProject.moveDown "a_file.fs" 
+    let files = pf'.SourceFiles.AllFiles()
+    files |> Seq.rev |> Seq.head |> should be (equal "a_file.fs")
+    files |> Seq.length |> should be (equal 3)
+
+
+[<Test>]
+let ``ProjectSystem - move up first file``() =
+    let pf = FsProject.parse astInput
+    let pf' = pf |> FsProject.moveUp "FixProject.fs" 
+    let files = pf'.SourceFiles.AllFiles()
+    files |> Seq.head |> should be (equal "fixproject.fs")
+    files |> Seq.length |> should be (equal 3)
+
+
+[<Test>]
+let ``ProjectSystem - add above``() =
+    let pf = FsProject.parse astInput
+    let f = {SourceFile.Include = "Test.fsi"; Condition = None; OnBuild = BuildAction.Compile; Link = None; Copy = None}
+    let pf' = pf |> FsProject.addAbove "FixProject.fs" f 
+    let files = pf'.SourceFiles.AllFiles()
+    files |> Seq.head |> should be (equal "test.fsi")    
+    files |> Seq.length |> should be (equal 4)
+
+    
+[<Test>]
+let ``ProjectSystem - add below``() =
+    let pf = FsProject.parse astInput
+    let f = {SourceFile.Include = "Test.fsi"; Condition = None; OnBuild = BuildAction.Compile; Link = None; Copy = None}
+    let pf' = pf |> FsProject.addBelow "a_file.fs" f 
+    let files = pf'.SourceFiles.AllFiles()
+    files |> Seq.rev |> Seq.head |> should be (equal "test.fsi")    
+    files |> Seq.length |> should be (equal 4)
+
+
+[<Test>]
+let ``ProjectSystem - rename file``() =
+    let pf = FsProject.parse astInput
+    let pf' = pf |> FsProject.renameFile "FixProject.fs" "FixProject_renamed.fs"
+    let files = pf'.SourceFiles.AllFiles()
+    files |> Seq.head |> should be (equal "FixProject_renamed.fs")
 
 
 [<Test>]
@@ -110,3 +164,6 @@ let ``ProjectSystem - remove not existing reference``() =
     let r = {Reference.Empty with Include = "System.Xml"}
     let pf' = FsProject.removeReference r pf
     pf'.References |> Seq.length |> should be (equal 5)
+
+
+
