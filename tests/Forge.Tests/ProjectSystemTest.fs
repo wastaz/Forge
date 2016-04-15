@@ -154,7 +154,6 @@ let ``ProjectSystem - remove not existing reference``() =
     let pf' = FsProject.removeReference r pf
     pf'.References |> Seq.length |> should be (equal 5)
 
-<<<<<<< HEAD
 [<Test>]
 let ``ProjectSystem - move up``() =
     let pf = FsProject.parse astInput
