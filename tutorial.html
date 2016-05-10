@@ -41,7 +41,7 @@
 </code></pre></td>
 </tr>
 </table>
-<p>On the first run Fix will download the templates found in the <a href="https://github.com/fsprojects/generator-fsharp">Generator F# Repository</a> and then allow you to choose which template you'd like to base your new project from.</p>
+<p>On the first run Forge will download the templates found in the <a href="https://github.com/fsprojects/generator-fsharp">Generator F# Repository</a> and then allow you to choose which template you'd like to base your new project from.</p>
 <table class="pre"><tr><td class="lines"><pre class="fssnip"><span class="l"> 1: </span>
 <span class="l"> 2: </span>
 <span class="l"> 3: </span>
@@ -76,10 +76,15 @@
 <span class="l">32: </span>
 <span class="l">33: </span>
 <span class="l">34: </span>
+<span class="l">35: </span>
+<span class="l">36: </span>
+<span class="l">37: </span>
+<span class="l">38: </span>
+<span class="l">39: </span>
 </pre></td>
 <td class="snippet"><pre class="fssnip highlighted"><code lang="fsharp"><span class="i">C</span><span class="o">:</span>
 <span class="o">&gt;</span>
-<span class="i">Fix</span> (<span class="i">Mix</span> <span class="k">for</span> <span class="i">F#</span>)
+<span class="i">Forge</span> (<span class="i">F#</span> <span class="i">Project</span> <span class="i">Builder</span>)
 <span class="i">Available</span> <span class="i">commands</span><span class="o">:</span>
     <span class="k">new</span><span class="o">:</span> <span class="i">Create</span> <span class="k">new</span> <span class="i">project</span>
     <span class="i">file</span><span class="o">:</span> <span class="i">Adds</span> <span class="k">or</span> <span class="i">removes</span> <span class="i">file</span> <span class="i">from</span> <span class="i">current</span> <span class="i">folder</span> <span class="k">and</span> <span class="i">project</span><span class="o">.</span>
@@ -98,14 +103,19 @@
  <span class="o">-</span> <span class="i">console</span>
  <span class="o">-</span> <span class="i">fslabbasic</span>
  <span class="o">-</span> <span class="i">fslabjournal</span>
+ <span class="o">-</span> <span class="i">pcl259</span>
+ <span class="o">-</span> <span class="i">servicefabrichost</span>
+ <span class="o">-</span> <span class="i">servicefabricsuavestateless</span>
  <span class="o">-</span> <span class="i">sln</span>
  <span class="o">-</span> <span class="i">suave</span>
+ <span class="o">-</span> <span class="i">suaveazurebootstrapper</span>
  <span class="o">-</span> <span class="i">websharperserverclient</span>
  <span class="o">-</span> <span class="i">websharperspa</span>
+ <span class="o">-</span> <span class="i">websharpersuave</span>
  <span class="o">-</span> <span class="i">windows</span>
 
 <span class="o">&gt;</span> <span class="i">suave</span>
-<span class="i">Fixing</span> <span class="i">template</span> <span class="i">suave</span>
+<span class="i">Forging</span> <span class="i">template</span> <span class="i">suave</span>
 <span class="i">Creating</span> <span class="i">C</span><span class="o">:</span>
 <span class="i">Changing</span> <span class="i">filenames</span> <span class="i">from</span> <span class="i">ApplicationName</span><span class="o">.</span><span class="o">*</span> <span class="k">to</span> <span class="i">MySuaveProject</span><span class="o">.</span><span class="o">*</span>
 <span class="i">Changing</span> <span class="k">namespace</span> <span class="k">to</span> <span class="i">MySuaveProject</span>
@@ -114,8 +124,8 @@
 </code></pre></td>
 </tr>
 </table>
-<p>Unless <code>--no-paket</code> flag is used, solution folder (folder in which <code>Fix</code> is running) will contain <code>.paket</code> folder and <code>paket.dependencies</code> and <code>paket.lock</code> file. Project folder will contain <code>paket.references</code> file.</p>
-<p>Unless <code>--no-fake</code> flag is used, solution folder (folder in which <code>Fix</code> is running) will contain <code>build.fsx</code>, <code>build.cmd</code>, and <code>build.sh</code> files. It won't override previously existing files.</p>
+<p>Unless <code>--no-paket</code> flag is used, solution folder (folder in which <code>Forge</code> is running) will contain <code>.paket</code> folder and <code>paket.dependencies</code> and <code>paket.lock</code> file. Project folder will contain <code>paket.references</code> file.</p>
+<p>Unless <code>--no-fake</code> flag is used, solution folder (folder in which <code>Forge</code> is running) will contain <code>build.fsx</code>, <code>build.cmd</code>, and <code>build.sh</code> files. It won't override previously existing files.</p>
 
 <div class="tip" id="fs1">Multiple items<br />val string : value:&#39;T -&gt; string<br /><br />Full name: Microsoft.FSharp.Core.Operators.string<br /><br />--------------------<br />type string = System.String<br /><br />Full name: Microsoft.FSharp.Core.string</div>
 <div class="tip" id="fs2">val exit : exitcode:int -&gt; &#39;T<br /><br />Full name: Microsoft.FSharp.Core.Operators.exit</div>
@@ -135,14 +145,14 @@
             <li><a href="/Forge/commands.html">Commands list</a></li>
 
             <li class="nav-header">GitHub</li>
-            <li><a href="https://github.com/fsprojects/Fix">Source Code</a></li>
-            <li><a href="https://github.com/fsprojects/Fix/releases">Releases</a></li>
-            <li><a href="https://github.com/fsprojects/Fix/issues">Report an issue</a></li>
+            <li><a href="https://github.com/fsprojects/Forge">Source Code</a></li>
+            <li><a href="https://github.com/fsprojects/Forge/releases">Releases</a></li>
+            <li><a href="https://github.com/fsprojects/Forge/issues">Report an issue</a></li>
 
-            <li class="nav-header">Fix commands</li>
-            <li><a href="/Forge/commands/new.html">Fix new</a></li>
-            <li><a href="/Forge/commands/file.html">Fix file</a></li>
-            <li><a href="/Forge/commands/reference.html">Fix reference</a></li>
+            <li class="nav-header">Forge commands</li>
+            <li><a href="/Forge/commands/new.html">Forge new</a></li>
+            <li><a href="/Forge/commands/file.html">Forge file</a></li>
+            <li><a href="/Forge/commands/reference.html">Forge reference</a></li>
           </ul>
         </div>
       </div>
