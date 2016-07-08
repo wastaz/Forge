@@ -26,12 +26,12 @@ let yellow      = ConsoleColor.Yellow
 
 let parser = ArgumentParser.Create<Command>()
 
-let write color (msg:string) =  
+let write color (msg:string) =
     Console.ForegroundColor <- color
     Console.Write msg
     Console.ForegroundColor <- defaultForeground
 
-let writeln color (msg:string) =  
+let writeln color (msg:string) =
     Console.ForegroundColor <- color
     Console.WriteLine msg
     Console.ForegroundColor <- defaultForeground
@@ -45,13 +45,13 @@ let highlight fcol bcol (msg:string) =
     Console.ForegroundColor <- defaultForeground
     Console.BackgroundColor <- defaultBackground
 
-let highlightln fcol bcol (msg:string) =    
+let highlightln fcol bcol (msg:string) =
     Console.ForegroundColor <- fcol
     Console.BackgroundColor <- bcol
     Console.WriteLine msg
     Console.ForegroundColor <- defaultForeground
     Console.BackgroundColor <- defaultBackground
-    
+
 
 let rec consoleLoop () =
     write   green Environment.CurrentDirectory
@@ -67,21 +67,11 @@ let rec consoleLoop () =
 
 [<EntryPoint>]
 let main argv =
-    let k = 
-        if argv.Length <> 0 && argv.[argv.Length - 1] = "--no-prompt" then 
-            "" 
-        else 
-            writeln yellow "\nForge should be run from solution/repository root. Please ensure you don't run it from folder containing other solutions"
-            writeln yellow "\nDo You want to continue? [Y/n]"
-            Console.ReadLine ()
-    if k = "Y" || k = "" then
-        match argv with
-        | [||] ->
-            writeln cyan "\nInitializing Forge... use -h or --help to see commands\n"
-            consoleLoop ()
-        | _ ->        
-            match singlePass argv with
-            | Continue -> consoleLoop ()
-            | Result.Exit -> 1
-    else
-        0
+    match argv with
+    | [||] ->
+        writeln cyan "\nInitializing Forge... use -h or --help to see commands\n"
+        consoleLoop ()
+    | _ ->
+        match singlePass argv with
+        | Continue -> consoleLoop ()
+        | Result.Exit -> 1
